@@ -67,7 +67,19 @@ partial class DecompilerService
                 }
             }
             
-            await SendJsonResponse(response, new { path = dirPath, directories, files });
+            // Calculate parent path
+            string? parentPath = null;
+            try
+            {
+                var parent = Directory.GetParent(dirPath);
+                if (parent != null)
+                {
+                    parentPath = parent.FullName;
+                }
+            }
+            catch { }
+            
+            await SendJsonResponse(response, new { currentPath = dirPath, parentPath, directories, files });
         }
         catch (Exception ex)
         {
