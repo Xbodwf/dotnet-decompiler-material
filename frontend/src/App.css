@@ -1,0 +1,68 @@
+/* Material Design 3 Global Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Monaco Editor adjustments */
+.monaco-editor,
+.monaco-editor-background,
+.monaco-editor .inputarea.ime-input {
+  background-color: #1d1b20 !important;
+}
+
+.monaco-editor .margin {
+  background-color: #141218 !important;
+}
+
+.monaco-editor .minimap {
+  opacity: 0.6;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #141218;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #49454f;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #938f99;
+}
+
+/* Selection */
+::selection {
+  background: rgba(208, 188, 255, 0.3);
+}
+
+/* Focus outline */
+:focus-visible {
+  outline: 2px solid #d0bcff;
+  outline-offset: 2px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
