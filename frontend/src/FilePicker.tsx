@@ -125,7 +125,7 @@ export default function FilePicker({ open, onClose, onSelect }: FilePickerProps)
     }
   };
 
-  const pathParts = currentPath.split('/').filter(Boolean);
+  const pathParts = (currentPath || '').split('/').filter(Boolean);
   const quickPaths = getQuickPaths(t);
 
   return (
