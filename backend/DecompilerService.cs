@@ -26,7 +26,12 @@ partial class DecompilerService
         }
         
         var listener = new HttpListener();
-        listener.Prefixes.Add($"http://*:{Port}/");
+        
+        // On Android/Termux, we need to listen on localhost only due to permission restrictions
+        // The Vite dev server will proxy API requests from mobile devices
+        listener.Prefixes.Add($"http://localhost:{Port}/");
+        listener.Prefixes.Add($"http://127.0.0.1:{Port}/");
+        
         listener.Start();
         
         Console.WriteLine($"Decompiler Service running on port {Port}");

@@ -25,6 +25,9 @@ import {
   Alert,
   CircularProgress,
   Collapse,
+  Drawer,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   FolderOpen as FolderOpenIcon,
@@ -46,6 +49,8 @@ import {
   InsertDriveFile as InsertDriveFileIcon,
   BrowseGallery as BrowseIcon,
   Language as LanguageIcon,
+  Menu as MenuIcon,
+  Inventory2 as Inventory2Icon,
 } from '@mui/icons-material';
 import {
   DndContext,
@@ -265,6 +270,8 @@ function SortableAssemblyItem({
 // Main App
 function App() {
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   const [assemblies, setAssemblies] = useState<Assembly[]>([]);
   const [currentAssembly, setCurrentAssembly] = useState<Assembly | null>(null);
@@ -283,6 +290,9 @@ function App() {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({ open: false, message: '', severity: 'info' });
   const [filePickerOpen, setFilePickerOpen] = useState(false);
   const [langMenuAnchor, setLangMenuAnchor] = useState<null | HTMLElement>(null);
+  
+  // Mobile drawer state
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   
   // Resizable panel heights
   const [assemblyListHeight, setAssemblyListHeight] = useState(180);
@@ -644,7 +654,18 @@ function App() {
             borderColor: 'outline.variant',
           }}
         >
-          <Toolbar sx={{ gap: 2 }}>
+          <Toolbar sx={{ gap: { xs: 1, md: 2 } }}>
+            {/* Mobile menu button */}
+            {isMobile && (
+              <IconButton
+                edge="start"
+                onClick={() => setMobileDrawerOpen(true)}
+                sx={{ mr: 1 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+            
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box
                 sx={{
@@ -661,7 +682,7 @@ function App() {
                   D
                 </Typography>
               </Box>
-              <Typography variant="h6" fontWeight={600} color="text.primary">
+              <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ display: { xs: 'none', sm: 'block' } }}>
                 {t('appTitle')}
               </Typography>
             </Box>
@@ -684,21 +705,39 @@ function App() {
               </MenuItem>
             </Menu>
             
-            <Button
-              variant="outlined"
-              startIcon={<BrowseIcon />}
-              onClick={() => setFilePickerOpen(true)}
-              sx={{ mr: 1 }}
-            >
-              {t('browseFiles')}
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<FolderOpenIcon />}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {t('uploadFiles')}
-            </Button>
+            {/* Desktop buttons */}
+            {!isMobile && (
+              <>
+                <Button
+                  variant="outlined"
+                  startIcon={<BrowseIcon />}
+                  onClick={() => setFilePickerOpen(true)}
+                  sx={{ mr: 1 }}
+                >
+                  {t('browseFiles')}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<FolderOpenIcon />}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {t('uploadFiles')}
+                </Button>
+              </>
+            )}
+            
+            {/* Mobile upload buttons */}
+            {isMobile && (
+              <>
+                <IconButton onClick={() => setFilePickerOpen(true)}>
+                  <BrowseIcon />
+                </IconButton>
+                <IconButton onClick={() => fileInputRef.current?.click()}>
+                  <FolderOpenIcon />
+                </IconButton>
+              </>
+            )}
+            
             <input
               ref={fileInputRef}
               type="file"
@@ -712,149 +751,309 @@ function App() {
 
         {/* Main Layout */}
         <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* Sidebar */}
-          <Paper
-            elevation={0}
-            sx={{
-              width: 320,
-              display: 'flex',
-              flexDirection: 'column',
-              bgcolor: md3Colors.surfaceContainer,
-              borderRight: 1,
-              borderColor: 'outline.variant',
-              borderRadius: 0,
-            }}
-          >
-            {/* Search */}
-            <Box sx={{ p: 1.5, position: 'relative' }}>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder={t('searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                onFocus={() => setShowSearchResults(true)}
-                onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
+          {/* Sidebar - Desktop */}
+          {!isMobile && (
+            <Paper
+              elevation={0}
+              sx={{
+                width: 320,
+                display: 'flex',
+                flexDirection: 'column',
+                bgcolor: md3Colors.surfaceContainer,
+                borderRight: 1,
+                borderColor: 'outline.variant',
+                borderRadius: 0,
+              }}
+            >
+              {/* Search */}
+              <Box sx={{ p: 1.5, position: 'relative' }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder={t('searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  onFocus={() => setShowSearchResults(true)}
+                  onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: md3Colors.surfaceContainerHigh,
+                      borderRadius: 3,
+                    },
+                  }}
+                />
+                {showSearchResults && searchResults.length > 0 && (
+                  <Paper
+                    sx={{
+                      position: 'absolute',
+                      zIndex: 1000,
+                      width: 284,
+                      mt: 0.5,
+                      maxHeight: 300,
+                      overflow: 'auto',
+                      bgcolor: md3Colors.surfaceContainerHigh,
+                    }}
+                  >
+                    <List dense>
+                      {searchResults.slice(0, 10).map((result, i) => (
+                        <ListItemButton key={i} onMouseDown={() => handleSearchResultSelect(result)}>
+                          <ListItemText
+                            primary={result.name}
+                            secondary={result.fullName}
+                            primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                            secondaryTypographyProps={{ variant: 'caption', noWrap: true }}
+                          />
+                          <Chip label={result.kind} size="small" sx={{ ml: 1 }} />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Paper>
+                )}
+              </Box>
+
+              {/* Assembly List - Resizable */}
+              <Box sx={{ flex: '0 0 auto', height: assemblyListHeight, overflow: 'auto' }}>
+                <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary' }}>
+                  {t('assemblies')}
+                </Typography>
+                {assemblies.length === 0 ? (
+                  <Box
+                    sx={{
+                      p: 2,
+                      textAlign: 'center',
+                      color: 'text.secondary',
+                      border: 1,
+                      borderStyle: 'dashed',
+                      borderColor: 'outline.variant',
+                      borderRadius: 3,
+                      mx: 1.5,
+                      cursor: 'pointer',
+                      '&:hover': { borderColor: 'primary.main' },
+                    }}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  >
+                    <Typography variant="body2">{t('dragDropHint')}</Typography>
+                  </Box>
+                ) : (
+                  <List dense sx={{ px: 1 }}>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                      <SortableContext items={assemblies.map((a) => a.id)} strategy={verticalListSortingStrategy}>
+                        {assemblies.map((assembly) => (
+                          <SortableAssemblyItem
+                            key={assembly.id}
+                            assembly={assembly}
+                            isActive={currentAssembly?.id === assembly.id}
+                            onSelect={handleAssemblySelect}
+                            onMenuOpen={handleMenuOpen}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  </List>
+                )}
+              </Box>
+
+              {/* Resizable Divider */}
+              <Box
+                onMouseDown={handleResizeStart}
                 sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: md3Colors.surfaceContainerHigh,
-                    borderRadius: 3,
-                  },
+                  height: 6,
+                  cursor: 'row-resize',
+                  bgcolor: isResizing ? 'primary.main' : 'divider',
+                  transition: 'background 0.2s',
+                  '&:hover': { bgcolor: 'primary.main', opacity: 0.5 },
+                  zIndex: 10,
                 }}
               />
-              {showSearchResults && searchResults.length > 0 && (
-                <Paper
-                  sx={{
-                    position: 'absolute',
-                    zIndex: 1000,
-                    width: 284,
-                    mt: 0.5,
-                    maxHeight: 300,
-                    overflow: 'auto',
-                    bgcolor: md3Colors.surfaceContainerHigh,
+
+              {/* Tree View */}
+              {currentAssembly && trees.has(currentAssembly.id) && (
+                <Box sx={{ flex: 1, overflow: 'auto', minHeight: 100 }}>
+                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary' }}>
+                    {t('typeBrowser')}
+                  </Typography>
+                  <List dense sx={{ px: 0.5 }}>
+                    <TreeNodeItem
+                      node={trees.get(currentAssembly.id)!}
+                      level={0}
+                      onSelect={handleNodeSelect}
+                      expandedIds={expandedIds}
+                      onToggle={handleToggleExpand}
+                      t={t}
+                    />
+                  </List>
+                </Box>
+              )}
+            </Paper>
+          )}
+
+          {/* Mobile Drawer */}
+          <Drawer
+            anchor="left"
+            open={mobileDrawerOpen}
+            onClose={() => setMobileDrawerOpen(false)}
+            PaperProps={{
+              sx: {
+                width: { xs: '85vw', sm: 320 },
+                maxWidth: 360,
+                bgcolor: md3Colors.surfaceContainer,
+              },
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              {/* Drawer Header */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                <Typography variant="h6" fontWeight={600}>{t('appTitle')}</Typography>
+                <IconButton onClick={() => setMobileDrawerOpen(false)}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+              
+              {/* Search */}
+              <Box sx={{ p: 1.5, position: 'relative' }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder={t('searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  onFocus={() => setShowSearchResults(true)}
+                  onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    },
                   }}
-                >
-                  <List dense>
-                    {searchResults.slice(0, 10).map((result, i) => (
-                      <ListItemButton key={i} onMouseDown={() => handleSearchResultSelect(result)}>
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: md3Colors.surfaceContainerHigh,
+                      borderRadius: 3,
+                    },
+                  }}
+                />
+                {showSearchResults && searchResults.length > 0 && (
+                  <Paper
+                    sx={{
+                      position: 'absolute',
+                      zIndex: 1000,
+                      left: 12,
+                      right: 12,
+                      mt: 0.5,
+                      maxHeight: 300,
+                      overflow: 'auto',
+                      bgcolor: md3Colors.surfaceContainerHigh,
+                    }}
+                  >
+                    <List dense>
+                      {searchResults.slice(0, 10).map((result, i) => (
+                        <ListItemButton 
+                          key={i} 
+                          onMouseDown={() => {
+                            handleSearchResultSelect(result);
+                            setMobileDrawerOpen(false);
+                          }}
+                        >
+                          <ListItemText
+                            primary={result.name}
+                            secondary={result.fullName}
+                            primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                            secondaryTypographyProps={{ variant: 'caption', noWrap: true }}
+                          />
+                          <Chip label={result.kind} size="small" sx={{ ml: 1 }} />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Paper>
+                )}
+              </Box>
+
+              {/* Assembly List */}
+              <Box sx={{ flex: '0 0 auto', maxHeight: '40%', overflow: 'auto' }}>
+                <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary' }}>
+                  {t('assemblies')}
+                </Typography>
+                {assemblies.length === 0 ? (
+                  <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
+                    <Typography variant="body2">{t('dragDropHint')}</Typography>
+                  </Box>
+                ) : (
+                  <List dense sx={{ px: 1 }}>
+                    {assemblies.map((assembly) => (
+                      <ListItemButton
+                        key={assembly.id}
+                        onClick={() => {
+                          handleAssemblySelect(assembly.id);
+                          setMobileDrawerOpen(false);
+                        }}
+                        selected={currentAssembly?.id === assembly.id}
+                        sx={{
+                          mb: 0.5,
+                          borderRadius: 3,
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 28 }}>
+                          <InsertDriveFileIcon sx={{ color: md3Colors.primary, fontSize: 20 }} />
+                        </ListItemIcon>
                         <ListItemText
-                          primary={result.name}
-                          secondary={result.fullName}
-                          primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
-                          secondaryTypographyProps={{ variant: 'caption', noWrap: true }}
+                          primary={assembly.name}
+                          secondary={`v${assembly.version}`}
+                          primaryTypographyProps={{ fontWeight: 500, noWrap: true }}
+                          secondaryTypographyProps={{ variant: 'caption' }}
                         />
-                        <Chip label={result.kind} size="small" sx={{ ml: 1 }} />
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMenuOpen(e, assembly);
+                          }}
+                        >
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
                       </ListItemButton>
                     ))}
                   </List>
-                </Paper>
-              )}
-            </Box>
-
-            {/* Assembly List - Resizable */}
-            <Box sx={{ flex: '0 0 auto', height: assemblyListHeight, overflow: 'auto' }}>
-              <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary' }}>
-                {t('assemblies')}
-              </Typography>
-              {assemblies.length === 0 ? (
-                <Box
-                  sx={{
-                    p: 2,
-                    textAlign: 'center',
-                    color: 'text.secondary',
-                    border: 1,
-                    borderStyle: 'dashed',
-                    borderColor: 'outline.variant',
-                    borderRadius: 3,
-                    mx: 1.5,
-                    cursor: 'pointer',
-                    '&:hover': { borderColor: 'primary.main' },
-                  }}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                >
-                  <Typography variant="body2">{t('dragDropHint')}</Typography>
-                </Box>
-              ) : (
-                <List dense sx={{ px: 1 }}>
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={assemblies.map((a) => a.id)} strategy={verticalListSortingStrategy}>
-                      {assemblies.map((assembly) => (
-                        <SortableAssemblyItem
-                          key={assembly.id}
-                          assembly={assembly}
-                          isActive={currentAssembly?.id === assembly.id}
-                          onSelect={handleAssemblySelect}
-                          onMenuOpen={handleMenuOpen}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
-                </List>
-              )}
-            </Box>
-
-            {/* Resizable Divider */}
-            <Box
-              onMouseDown={handleResizeStart}
-              sx={{
-                height: 6,
-                cursor: 'row-resize',
-                bgcolor: isResizing ? 'primary.main' : 'divider',
-                transition: 'background 0.2s',
-                '&:hover': { bgcolor: 'primary.main', opacity: 0.5 },
-                zIndex: 10,
-              }}
-            />
-
-            {/* Tree View */}
-            {currentAssembly && trees.has(currentAssembly.id) && (
-              <Box sx={{ flex: 1, overflow: 'auto', minHeight: 100 }}>
-                <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary' }}>
-                  {t('typeBrowser')}
-                </Typography>
-                <List dense sx={{ px: 0.5 }}>
-                  <TreeNodeItem
-                    node={trees.get(currentAssembly.id)!}
-                    level={0}
-                    onSelect={handleNodeSelect}
-                    expandedIds={expandedIds}
-                    onToggle={handleToggleExpand}
-                    t={t}
-                  />
-                </List>
+                )}
               </Box>
-            )}
-          </Paper>
+
+              <Divider />
+
+              {/* Tree View */}
+              {currentAssembly && trees.has(currentAssembly.id) && (
+                <Box sx={{ flex: 1, overflow: 'auto', minHeight: 100 }}>
+                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary' }}>
+                    {t('typeBrowser')}
+                  </Typography>
+                  <List dense sx={{ px: 0.5 }}>
+                    <TreeNodeItem
+                      node={trees.get(currentAssembly.id)!}
+                      level={0}
+                      onSelect={(node) => {
+                        handleNodeSelect(node);
+                        setMobileDrawerOpen(false);
+                      }}
+                      expandedIds={expandedIds}
+                      onToggle={handleToggleExpand}
+                      t={t}
+                    />
+                  </List>
+                </Box>
+              )}
+            </Box>
+          </Drawer>
 
           {/* Main Content */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -915,7 +1114,7 @@ function App() {
                     '&:hover': { borderColor: 'primary.main' },
                   }}
                 >
-                  <Typography variant="h3" sx={{ mb: 2 }}>📦</Typography>
+                  <Inventory2Icon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
                   <Typography variant="h6" color="text.primary">{t('dragDropHere')}</Typography>
                   <Typography variant="body2" color="text.secondary">{t('supportedFormats')}</Typography>
                 </Box>

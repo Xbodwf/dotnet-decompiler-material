@@ -1,6 +1,8 @@
 import type { Assembly, TypeInfo, SearchResult, UploadedFile, TreeNode } from './types';
 
-const API_BASE = 'http://localhost:3721/api';
+// Use relative path for API - this will work through Vite proxy in development
+// and will be served from the same origin in production
+const API_BASE = '/api';
 
 export async function checkHealth(): Promise<{ status: string }> {
   const response = await fetch(`${API_BASE}/health`);

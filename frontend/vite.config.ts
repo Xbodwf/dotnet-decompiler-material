@@ -14,4 +14,8 @@ export default defineConfig({
       },
     },
   },
+  // Define environment variable for backend URL (used when not going through proxy)
+  define: {
+    'import.meta.env.VITE_BACKEND_URL': JSON.stringify(process.env.VITE_BACKEND_URL || ''),
+  },
 })
